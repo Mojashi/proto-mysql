@@ -25,6 +25,14 @@ type NameSpace struct {
 	messages        map[string]Message
 }
 
+func NewNameSpace() *NameSpace {
+	return &NameSpace{
+		childNameSpaces: map[string]INameSpace{},
+		enums:           map[string]Enum{},
+		messages:        map[string]Message{},
+	}
+}
+
 func (ns *NameSpace) getMessage(path Path) (Message, bool) {
 	if len(path) == 0 {
 		return Message{}, false
@@ -63,7 +71,7 @@ func (ns *NameSpace) getNameSpace(name Path) *NameSpace {
 	var ch INameSpace
 	var ok bool
 	if ch, ok = ns.childNameSpaces[name[0]]; !ok {
-		ch = new(NameSpace)
+		ch = NewNameSpace()
 		ns.childNameSpaces[name[0]] = ch
 	}
 	return ch.getNameSpace(name[1:])
@@ -84,7 +92,10 @@ type Message struct {
 }
 
 func NewMessage(message *descriptor.DescriptorProto) Message {
-	var ret Message
+	ret := Message{
+		*NewNameSpace(),
+		message,
+	}
 	for _, enum := range message.GetEnumType() {
 		ret.addEnum(NewEnum(enum))
 	}
@@ -105,7 +116,7 @@ func NewEnum(enum *descriptor.EnumDescriptorProto) Enum {
 }
 
 func analyzeDependency(req *plugin.CodeGeneratorRequest, file *descriptor.FileDescriptorProto) INameSpace {
-	var ns NameSpace
+	ns := NewNameSpace()
 
 	files := make(map[string]*descriptor.FileDescriptorProto)
 	for _, f := range req.ProtoFile {
@@ -125,5 +136,5 @@ func analyzeDependency(req *plugin.CodeGeneratorRequest, file *descriptor.FileDe
 			}
 		}
 	}
-	return &ns
+	return ns
 }

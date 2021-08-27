@@ -1,0 +1,9 @@
+syntax = "proto3";
+package foo.bar;
+message A {
+enum Gendera {
+    MALE = 0;
+    FEMALE = 1;
+    OTHER = 2;
+  }
+}
