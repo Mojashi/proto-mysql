@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/golang/glog"
@@ -19,7 +18,7 @@ var MySQLDataTypeMap = map[descriptor.FieldDescriptorProto_Type]MySQLDataType{
 	descriptor.FieldDescriptorProto_TYPE_UINT64:   "BIGINT UNSIGNED",
 	descriptor.FieldDescriptorProto_TYPE_INT32:    "INT",
 	descriptor.FieldDescriptorProto_TYPE_FIXED64:  "BIGINT UNSIGNED",
-	descriptor.FieldDescriptorProto_TYPE_FIXED32:  "INT",
+	descriptor.FieldDescriptorProto_TYPE_FIXED32:  "INT UNSIGNED",
 	descriptor.FieldDescriptorProto_TYPE_BOOL:     "BOOLEAN",
 	descriptor.FieldDescriptorProto_TYPE_STRING:   "TEXT",
 	descriptor.FieldDescriptorProto_TYPE_BYTES:    "BLOB",
@@ -46,7 +45,8 @@ func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (M
 	if field.Type != nil {
 		var ok bool
 		if mType, ok = MySQLDataTypeMap[field.GetType()]; !ok {
-			return mType, fmt.Errorf("type %s doesn't have corresponding type in MySQL", field.Type.String())
+			// Message type
+			mType = "JSON"
 		}
 		if mType == "ENUM" {
 			if enum, ok := dep.GetEnum(strings.Split(field.GetTypeName(), ".")); ok {
@@ -57,7 +57,8 @@ func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (M
 			}
 		}
 	} else if field.TypeName != nil {
-		return mType, fmt.Errorf("type %s doesn't have corresponding type in MySQL", *field.TypeName)
+		// Message type
+		mType = "JSON"
 	} else {
 		return mType, fmt.Errorf("failed to find type")
 	}
@@ -73,7 +74,7 @@ func genColumnDefinition(dep INameSpace, field *descriptor.FieldDescriptorProto)
 	}
 	defaultValule := ""
 	if field.DefaultValue != nil {
-		defaultValule = fmt.Sprintf("DEFAULT %s", *field.DefaultValue)
+		defaultValule = fmt.Sprintf("DEFAULT %s", field.GetDefaultValue())
 	}
 
 	return fmt.Sprintf("%s %s %s", dataType, nullable, defaultValule), err
@@ -107,9 +108,7 @@ func genCreateTable(dep INameSpace, mt *descriptor.DescriptorProto) string {
 	)
 }
 
-func genSQL(dep INameSpace, f *descriptor.FileDescriptorProto) string {
-	log.Print(f.Dependency)
-	log.Print(f.EnumType)
+func GenSQL(dep INameSpace, f *descriptor.FileDescriptorProto) string {
 	createTables := make([]string, 0, len(f.MessageType))
 	for _, mt := range f.MessageType {
 		createTables = append(createTables, genCreateTable(dep, mt))

@@ -9,6 +9,5 @@ CREATE TABLE User (
 	username TEXT NOT NULL ,
 	age INT NULL ,
 	sgender ENUM("MALE","FEMALE","OTHER") NOT NULL ,
-	gender ENUM("MALE","FEMALE","OTHER") NOT NULL ,
-	a ENUM("MALE","FEMALE","OTHER") NOT NULL 
+	s JSON NOT NULL 
 );

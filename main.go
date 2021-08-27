@@ -33,12 +33,10 @@ func processReq(req *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse 
 	for _, fname := range req.FileToGenerate {
 		f := files[fname]
 
-		dep := analyzeDependency(req, f)
-
 		out := fname + ".sql"
 		resp.File = append(resp.File, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(out),
-			Content: proto.String(genSQL(dep, f)),
+			Content: proto.String(GenSQL(analyzeDependency(req, f), f)),
 		})
 	}
 

@@ -1,6 +1,4 @@
 syntax = "proto3";
-import "test2.proto";
-import "test3.proto";
 package Foo;
 
 message SearchRequest {
@@ -19,6 +17,5 @@ message User {
     OTHER = 2;
   }
   Gender sgender = 6;
-  DS.Gendera gender = 4;
-  foo.bar.A.Gendera a = 5;
+  SearchRequest s = 7;
 }

@@ -1,8 +1,0 @@
-syntax = "proto3";
-message DS {
-enum Gendera {
-    MALE = 0;
-    FEMALE = 1;
-    OTHER = 2;
-  }
-}

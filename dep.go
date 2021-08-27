@@ -173,6 +173,5 @@ func analyzeDependency(req *plugin.CodeGeneratorRequest, file *descriptor.FileDe
 		}
 	}
 	analyzeFile(file)
-	glog.Info(ns.PrintTree(0))
 	return ns
 }
