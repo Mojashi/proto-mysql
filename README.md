@@ -7,24 +7,24 @@ protobuf protoc plugin for generating ```CRAETE TABLE``` statement.
 ## Type Mapping
 |protocol buffer | MySQL |
 |-----------|---------|
-|MESSAGE| JSON|
-|ENUM| ENUM|
-|DOUBLE| DOUBLE|
-|FLOAT| FLOAT|
-|INT64| BIGINT|
-|UINT64| BIGINT UNSIGNED|
-|INT32| INT|
-|FIXED64| BIGINT UNSIGNED|
-|FIXED32| INT UNSIGNED|
-|BOOL| BOOLEAN|
-|STRING| TEXT|
-|BYTES| BLOB|
-|UINT32| INT UNSIGNED|
-|ENUM| ENUM|
-|SFIXED32| INT|
-|SFIXED64| BIGINT|
-|SINT32| INT|
-|SINT64| BIGINT|
+|message| JSON|
+|repeated ~| JSON|
+|enum| ENUM|
+|double| DOUBLE|
+|float| FLOAT|
+|int64| BIGINT|
+|uint64| BIGINT UNSIGNED|
+|int32| INT|
+|fixed64| BIGINT UNSIGNED|
+|fixed32| INT UNSIGNED|
+|bool| BOOLEAN|
+|string| TEXT|
+|bytes| BLOB|
+|uint32| INT UNSIGNED|
+|sfixed32| INT|
+|sfixed64| BIGINT|
+|sint32| INT|
+|sint64| BIGINT|
 
 ## Example
 ### Input
@@ -49,6 +49,7 @@ message User {
   }
   Gender sgender = 6;
   SearchRequest s = 7;
+  repeated int32 stamps = 8;
 }
 ```
 ### Output
@@ -64,7 +65,8 @@ CREATE TABLE User (
 	username TEXT NOT NULL ,
 	age INT NULL ,
 	sgender ENUM("MALE","FEMALE","OTHER") NOT NULL ,
-	s JSON NOT NULL 
+	s JSON NOT NULL ,
+	stamps JSON NOT NULL 
 );
 ```
 

@@ -18,4 +18,5 @@ message User {
   }
   Gender sgender = 6;
   SearchRequest s = 7;
+  repeated int32 stamps = 8;
 }

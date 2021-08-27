@@ -11,8 +11,6 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-import test2_pb2 as test2__pb2
-import test3_pb2 as test3__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -21,9 +19,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\ntest.proto\x12\x03\x46oo\x1a\x0btest2.proto\x1a\x0btest3.proto\"L\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12\x13\n\x0bpage_number\x18\x02 \x01(\x05\x12\x17\n\x0fresult_per_page\x18\x03 \x01(\x05\"\xc8\x01\n\x04User\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08username\x18\x02 \x01(\t\x12\x10\n\x03\x61ge\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12!\n\x07sgender\x18\x06 \x01(\x0e\x32\x10.Foo.User.Gender\x12\x1b\n\x06gender\x18\x04 \x01(\x0e\x32\x0b.DS.Gendera\x12\x1d\n\x01\x61\x18\x05 \x01(\x0e\x32\x12.foo.bar.A.Gendera\")\n\x06Gender\x12\x08\n\x04MALE\x10\x00\x12\n\n\x06\x46\x45MALE\x10\x01\x12\t\n\x05OTHER\x10\x02\x42\x06\n\x04_ageb\x06proto3'
-  ,
-  dependencies=[test2__pb2.DESCRIPTOR,test3__pb2.DESCRIPTOR,])
+  serialized_pb=b'\n\ntest.proto\x12\x03\x46oo\"L\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12\x13\n\x0bpage_number\x18\x02 \x01(\x05\x12\x17\n\x0fresult_per_page\x18\x03 \x01(\x05\"\xab\x01\n\x04User\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08username\x18\x02 \x01(\t\x12\x10\n\x03\x61ge\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12!\n\x07sgender\x18\x06 \x01(\x0e\x32\x10.Foo.User.Gender\x12\x1d\n\x01s\x18\x07 \x01(\x0b\x32\x12.Foo.SearchRequest\")\n\x06Gender\x12\x08\n\x04MALE\x10\x00\x12\n\n\x06\x46\x45MALE\x10\x01\x12\t\n\x05OTHER\x10\x02\x42\x06\n\x04_ageb\x06proto3'
+)
 
 
 
@@ -52,8 +49,8 @@ _USER_GENDER = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=275,
-  serialized_end=316,
+  serialized_start=220,
+  serialized_end=261,
 )
 _sym_db.RegisterEnumDescriptor(_USER_GENDER)
 
@@ -99,8 +96,8 @@ _SEARCHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=45,
-  serialized_end=121,
+  serialized_start=19,
+  serialized_end=95,
 )
 
 
@@ -141,16 +138,9 @@ _USER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='gender', full_name='Foo.User.gender', index=4,
-      number=4, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='a', full_name='Foo.User.a', index=5,
-      number=5, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
+      name='s', full_name='Foo.User.s', index=4,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -172,13 +162,12 @@ _USER = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=124,
-  serialized_end=324,
+  serialized_start=98,
+  serialized_end=269,
 )
 
 _USER.fields_by_name['sgender'].enum_type = _USER_GENDER
-_USER.fields_by_name['gender'].enum_type = test3__pb2._DS_GENDERA
-_USER.fields_by_name['a'].enum_type = test2__pb2._A_GENDERA
+_USER.fields_by_name['s'].message_type = _SEARCHREQUEST
 _USER_GENDER.containing_type = _USER
 _USER.oneofs_by_name['_age'].fields.append(
   _USER.fields_by_name['age'])

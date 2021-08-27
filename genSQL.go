@@ -63,6 +63,11 @@ func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (M
 		return mType, fmt.Errorf("failed to find type")
 	}
 
+	if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+		// repeated type is represented as JSON
+		mType = "JSON"
+	}
+
 	return mType, nil
 }
 
