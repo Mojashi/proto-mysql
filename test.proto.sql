@@ -8,7 +8,7 @@ CREATE TABLE User (
 	id INT NOT NULL ,
 	username TEXT NOT NULL ,
 	age INT NULL ,
-	sgender ENUM NOT NULL ,
+	sgender ENUM("MALE","FEMALE","OTHER") NOT NULL ,
 	gender ENUM("MALE","FEMALE","OTHER") NOT NULL ,
-	a ENUM NOT NULL 
+	a ENUM("MALE","FEMALE","OTHER") NOT NULL 
 );

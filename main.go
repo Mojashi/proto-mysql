@@ -69,6 +69,9 @@ func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (M
 		if mType == "ENUM" {
 			if enum, ok := dep.getEnum(strings.Split(field.GetTypeName(), ".")); ok {
 				mType += MySQLDataType("(\"" + strings.Join(enumEnum(enum.enum), "\",\"") + "\")")
+			} else {
+				glog.Errorf("failed to find ENUM %s", field.GetTypeName())
+				return mType, fmt.Errorf("failed to find ENUM")
 			}
 		}
 	} else if field.TypeName != nil {

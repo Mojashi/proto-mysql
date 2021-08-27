@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/golang/glog"
@@ -16,6 +17,7 @@ type INameSpace interface {
 	getNameSpace(name Path) *NameSpace
 	addEnum(enum Enum)
 	addMessage(Message Message)
+	printTree(depth int) string
 }
 
 //impl NameSpace
@@ -37,6 +39,9 @@ func (ns *NameSpace) getMessage(path Path) (Message, bool) {
 	if len(path) == 0 {
 		return Message{}, false
 	}
+	if path[0] == "" {
+		return ns.getMessage(path[1:])
+	}
 
 	if len(path) == 1 {
 		msg, ok := ns.messages[path[0]]
@@ -51,6 +56,9 @@ func (ns *NameSpace) getMessage(path Path) (Message, bool) {
 func (ns *NameSpace) getEnum(path Path) (Enum, bool) {
 	if len(path) == 0 {
 		return Enum{}, false
+	}
+	if path[0] == "" {
+		return ns.getEnum(path[1:])
 	}
 
 	if len(path) == 1 {
@@ -68,6 +76,9 @@ func (ns *NameSpace) getNameSpace(name Path) *NameSpace {
 	if len(name) == 0 {
 		return ns
 	}
+	if name[0] == "" {
+		return ns.getNameSpace(name[1:])
+	}
 	var ch INameSpace
 	var ok bool
 	if ch, ok = ns.childNameSpaces[name[0]]; !ok {
@@ -83,6 +94,27 @@ func (ns *NameSpace) addMessage(message Message) {
 }
 func (ns *NameSpace) addEnum(enum Enum) {
 	ns.enums[enum.enum.GetName()] = enum
+}
+
+func (ns *NameSpace) printTree(depth int) string {
+	trees := []string{}
+	for name, dep := range ns.childNameSpaces {
+		trees = append(trees, strings.Repeat("\t", depth)+name+":"+dep.printTree(depth+1))
+	}
+	messages := []string{}
+	for name, _ := range ns.messages {
+		messages = append(messages, name)
+	}
+	enums := []string{}
+	for name, _ := range ns.enums {
+		enums = append(enums, name)
+	}
+
+	return fmt.Sprintf("messages:(%s) enums:(%s) nss:(\n%s)",
+		strings.Join(messages, ","),
+		strings.Join(enums, ","),
+		strings.Join(trees, ",\n"),
+	)
 }
 
 //impl NameSpace
@@ -123,18 +155,24 @@ func analyzeDependency(req *plugin.CodeGeneratorRequest, file *descriptor.FileDe
 		files[f.GetName()] = f
 	}
 
+	analyzeFile := func(f *descriptor.FileDescriptorProto) {
+		cns := ns.getNameSpace(strings.Split(f.GetPackage(), "."))
+		for _, message := range f.GetMessageType() {
+			cns.addMessage(NewMessage(message))
+		}
+		for _, enum := range f.GetEnumType() {
+			cns.addEnum(NewEnum(enum))
+		}
+	}
+
 	for _, dep := range file.Dependency {
 		if f, ok := files[dep]; !ok {
 			glog.Errorf("filed %s not found", f)
 		} else {
-			cns := ns.getNameSpace(strings.Split(f.GetPackage(), "."))
-			for _, message := range f.GetMessageType() {
-				cns.addMessage(NewMessage(message))
-			}
-			for _, enum := range f.GetEnumType() {
-				cns.addEnum(NewEnum(enum))
-			}
+			analyzeFile(f)
 		}
 	}
+	analyzeFile(file)
+	glog.Info(ns.printTree(0))
 	return ns
 }
