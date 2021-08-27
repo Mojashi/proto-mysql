@@ -1,4 +1,4 @@
-package main
+package dep
 
 import (
 	"fmt"
@@ -146,8 +146,9 @@ func NewEnum(enum *descriptor.EnumDescriptorProto) Enum {
 		enum: enum,
 	}
 }
+func (e Enum) GetEnum() *descriptor.EnumDescriptorProto { return e.enum }
 
-func analyzeDependency(req *plugin.CodeGeneratorRequest, file *descriptor.FileDescriptorProto) INameSpace {
+func AnalyzeDependency(req *plugin.CodeGeneratorRequest, file *descriptor.FileDescriptorProto) INameSpace {
 	ns := NewNameSpace()
 
 	files := make(map[string]*descriptor.FileDescriptorProto)

@@ -1,6 +1,6 @@
-protoc-gen-mysql: main.go dep.go genSQL.go
+protoc-gen-mysql: main.go dep/dep.go genSQL.go helper/genPythonHelper.go helper/genCppHelper.go
 	go build -o protoc-gen-mysql
 
 .PHONY: test
-test: test.proto protoc-gen-mysql
-	protoc --plugin=protoc-gen-mysql --mysql_out=./ test.proto
+test: test/test.proto protoc-gen-mysql
+	protoc --plugin=protoc-gen-mysql --mysql_out=./ test/test.proto

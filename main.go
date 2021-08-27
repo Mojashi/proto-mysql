@@ -6,10 +6,14 @@ import (
 	"log"
 	"os"
 
+	"github.com/Mojashi/proto-mysql/dep"
+	"github.com/Mojashi/proto-mysql/helper"
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"google.golang.org/protobuf/proto"
 )
+
+var helpers = []helper.Helper{}
 
 func parseReq(r io.Reader) (*plugin.CodeGeneratorRequest, error) {
 	buf, err := ioutil.ReadAll(r)
@@ -34,10 +38,14 @@ func processReq(req *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse 
 		f := files[fname]
 
 		out := fname + ".sql"
+		dep := dep.AnalyzeDependency(req, f)
+		pycon, _ := helper.GetHelperGen("python")
+
 		resp.File = append(resp.File, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(out),
-			Content: proto.String(GenSQL(analyzeDependency(req, f), f)),
+			Content: proto.String(GenSQL(dep, f)),
 		})
+		resp.File = append(resp.File, pycon(dep, f)...)
 	}
 
 	var SupportedFeatures = uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)

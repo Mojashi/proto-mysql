@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Mojashi/proto-mysql/dep"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/pkg/errors"
@@ -39,7 +40,7 @@ func enumEnum(e *descriptor.EnumDescriptorProto) (names []string) {
 	return names
 }
 
-func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataType, error) {
+func genMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataType, error) {
 	var mType MySQLDataType
 
 	if field.Type != nil {
@@ -50,7 +51,7 @@ func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (M
 		}
 		if mType == "ENUM" {
 			if enum, ok := dep.GetEnum(strings.Split(field.GetTypeName(), ".")); ok {
-				mType += MySQLDataType("(\"" + strings.Join(enumEnum(enum.enum), "\",\"") + "\")")
+				mType += MySQLDataType("(\"" + strings.Join(enumEnum(enum.GetEnum()), "\",\"") + "\")")
 			} else {
 				glog.Errorf("failed to find ENUM %s", field.GetTypeName())
 				return mType, fmt.Errorf("failed to find ENUM")
@@ -71,7 +72,7 @@ func genMySQLDataType(dep INameSpace, field *descriptor.FieldDescriptorProto) (M
 	return mType, nil
 }
 
-func genColumnDefinition(dep INameSpace, field *descriptor.FieldDescriptorProto) (string, error) {
+func genColumnDefinition(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (string, error) {
 	dataType, err := genMySQLDataType(dep, field)
 	nullable := "NOT NULL"
 	if field.GetProto3Optional() {
@@ -86,7 +87,7 @@ func genColumnDefinition(dep INameSpace, field *descriptor.FieldDescriptorProto)
 }
 
 // return column definition. e.g. "id INTEGER NOT NULL"
-func genCreateDefinition(dep INameSpace, field *descriptor.FieldDescriptorProto) (string, error) {
+func genCreateDefinition(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (string, error) {
 	columnDefinition, err := genColumnDefinition(dep, field)
 	if field.GetName() == "" {
 		err = errors.Wrap(err, "field name is empty")
@@ -94,7 +95,7 @@ func genCreateDefinition(dep INameSpace, field *descriptor.FieldDescriptorProto)
 	return fmt.Sprintf("%s %s", field.GetName(), columnDefinition), err
 }
 
-func genCreateTable(dep INameSpace, mt *descriptor.DescriptorProto) string {
+func genCreateTable(dep dep.INameSpace, mt *descriptor.DescriptorProto) string {
 
 	createDefinitions := make([]string, 0, len(mt.Field))
 
@@ -107,13 +108,17 @@ func genCreateTable(dep INameSpace, mt *descriptor.DescriptorProto) string {
 		createDefinitions = append(createDefinitions, "\t"+createDefinition)
 	}
 
+	createDefinitions = append(createDefinitions,
+		"\tPROTO_BINARY BLOB NOT NULL",
+	)
+
 	return fmt.Sprintf("CREATE TABLE %s (\n%s\n);",
 		mt.GetName(),
 		strings.Join(createDefinitions, ",\n"),
 	)
 }
 
-func GenSQL(dep INameSpace, f *descriptor.FileDescriptorProto) string {
+func GenSQL(dep dep.INameSpace, f *descriptor.FileDescriptorProto) string {
 	createTables := make([]string, 0, len(f.MessageType))
 	for _, mt := range f.MessageType {
 		createTables = append(createTables, genCreateTable(dep, mt))
