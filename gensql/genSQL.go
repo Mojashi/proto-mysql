@@ -1,4 +1,4 @@
-package main
+package gensql
 
 import (
 	"fmt"
@@ -12,23 +12,37 @@ import (
 
 type MySQLDataType string
 
+const (
+	DOUBLE  MySQLDataType = "DOUBLE"
+	FLOAT   MySQLDataType = "FLOAT"
+	INT     MySQLDataType = "INT"
+	BIGINT  MySQLDataType = "BIGINT"
+	UINT    MySQLDataType = "INT UNSIGNED"
+	UBIGINT MySQLDataType = "BIGINT UNSIGNED"
+	ENUM    MySQLDataType = "ENUM"
+	BOOLEAN MySQLDataType = "BOOLEAN"
+	TEXT    MySQLDataType = "TEXT"
+	BLOB    MySQLDataType = "BLOB"
+	JSON    MySQLDataType = "JSON"
+)
+
 var MySQLDataTypeMap = map[descriptor.FieldDescriptorProto_Type]MySQLDataType{
-	descriptor.FieldDescriptorProto_TYPE_DOUBLE:   "DOUBLE",
-	descriptor.FieldDescriptorProto_TYPE_FLOAT:    "FLOAT",
-	descriptor.FieldDescriptorProto_TYPE_INT64:    "BIGINT",
-	descriptor.FieldDescriptorProto_TYPE_UINT64:   "BIGINT UNSIGNED",
-	descriptor.FieldDescriptorProto_TYPE_INT32:    "INT",
-	descriptor.FieldDescriptorProto_TYPE_FIXED64:  "BIGINT UNSIGNED",
-	descriptor.FieldDescriptorProto_TYPE_FIXED32:  "INT UNSIGNED",
-	descriptor.FieldDescriptorProto_TYPE_BOOL:     "BOOLEAN",
-	descriptor.FieldDescriptorProto_TYPE_STRING:   "TEXT",
-	descriptor.FieldDescriptorProto_TYPE_BYTES:    "BLOB",
-	descriptor.FieldDescriptorProto_TYPE_UINT32:   "INT UNSIGNED",
-	descriptor.FieldDescriptorProto_TYPE_ENUM:     "ENUM",
-	descriptor.FieldDescriptorProto_TYPE_SFIXED32: "INT",
-	descriptor.FieldDescriptorProto_TYPE_SFIXED64: "BIGINT",
-	descriptor.FieldDescriptorProto_TYPE_SINT32:   "INT",
-	descriptor.FieldDescriptorProto_TYPE_SINT64:   "BIGINT",
+	descriptor.FieldDescriptorProto_TYPE_DOUBLE:   DOUBLE,
+	descriptor.FieldDescriptorProto_TYPE_FLOAT:    FLOAT,
+	descriptor.FieldDescriptorProto_TYPE_INT64:    BIGINT,
+	descriptor.FieldDescriptorProto_TYPE_UINT64:   UBIGINT,
+	descriptor.FieldDescriptorProto_TYPE_INT32:    INT,
+	descriptor.FieldDescriptorProto_TYPE_FIXED64:  UBIGINT,
+	descriptor.FieldDescriptorProto_TYPE_FIXED32:  UINT,
+	descriptor.FieldDescriptorProto_TYPE_BOOL:     BOOLEAN,
+	descriptor.FieldDescriptorProto_TYPE_STRING:   TEXT,
+	descriptor.FieldDescriptorProto_TYPE_BYTES:    BLOB,
+	descriptor.FieldDescriptorProto_TYPE_UINT32:   UINT,
+	descriptor.FieldDescriptorProto_TYPE_ENUM:     ENUM,
+	descriptor.FieldDescriptorProto_TYPE_SFIXED32: INT,
+	descriptor.FieldDescriptorProto_TYPE_SFIXED64: BIGINT,
+	descriptor.FieldDescriptorProto_TYPE_SINT32:   INT,
+	descriptor.FieldDescriptorProto_TYPE_SINT64:   BIGINT,
 }
 
 func enumEnum(e *descriptor.EnumDescriptorProto) (names []string) {
@@ -40,16 +54,16 @@ func enumEnum(e *descriptor.EnumDescriptorProto) (names []string) {
 	return names
 }
 
-func genMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataType, error) {
+func GenMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataType, error) {
 	var mType MySQLDataType
 
 	if field.Type != nil {
 		var ok bool
 		if mType, ok = MySQLDataTypeMap[field.GetType()]; !ok {
 			// Message type
-			mType = "JSON"
+			mType = JSON
 		}
-		if mType == "ENUM" {
+		if mType == ENUM {
 			if enum, ok := dep.GetEnum(strings.Split(field.GetTypeName(), ".")); ok {
 				mType += MySQLDataType("(\"" + strings.Join(enumEnum(enum.GetEnum()), "\",\"") + "\")")
 			} else {
@@ -59,21 +73,21 @@ func genMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto
 		}
 	} else if field.TypeName != nil {
 		// Message type
-		mType = "JSON"
+		mType = JSON
 	} else {
 		return mType, fmt.Errorf("failed to find type")
 	}
 
 	if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 		// repeated type is represented as JSON
-		mType = "JSON"
+		mType = JSON
 	}
 
 	return mType, nil
 }
 
 func genColumnDefinition(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (string, error) {
-	dataType, err := genMySQLDataType(dep, field)
+	dataType, err := GenMySQLDataType(dep, field)
 	nullable := "NOT NULL"
 	if field.GetProto3Optional() {
 		nullable = "NULL"

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/Mojashi/proto-mysql/dep"
+	"github.com/Mojashi/proto-mysql/gensql"
 	"github.com/Mojashi/proto-mysql/helper"
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -43,7 +44,7 @@ func processReq(req *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse 
 
 		resp.File = append(resp.File, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(out),
-			Content: proto.String(GenSQL(dep, f)),
+			Content: proto.String(gensql.GenSQL(dep, f)),
 		})
 		resp.File = append(resp.File, pycon(dep, f)...)
 	}

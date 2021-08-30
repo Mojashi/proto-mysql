@@ -1,2 +1,3 @@
 test.proto_helper.py
 test.proto.sql
+test_pb2.py

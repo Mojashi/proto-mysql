@@ -1,4 +1,4 @@
-protoc-gen-mysql: main.go dep/dep.go genSQL.go helper/genPythonHelper.go helper/genCppHelper.go
+protoc-gen-mysql: main.go dep/dep.go gensql/genSQL.go helper/genPythonHelper.go 
 	go build -o protoc-gen-mysql
 
 .PHONY: test
