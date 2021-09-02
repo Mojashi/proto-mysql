@@ -78,7 +78,7 @@ func genPythonHelper(dep dep.INameSpace, f *descriptor.FileDescriptorProto) []*p
 	}
 
 	return []*plugin.CodeGeneratorResponse_File{
-		&plugin.CodeGeneratorResponse_File{
+		{
 			Name: proto.String(f.GetName() + "_helper.py"),
 			Content: proto.String(`
 from typing import Any,Mapping,List,Tuple
