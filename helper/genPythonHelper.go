@@ -65,7 +65,7 @@ def get%sColumnNames() -> List[str]:
 	return "%s"
 	
 # convert proto message class variable to INSERT-ready dictionary
-def conv%sProtoClassToData(value) :
+def conv%sProtoClassToData(value) -> Tuple:
 	return (%s)
 		`, tableName, strings.Join(columns, ","), tableName, strings.Join(elems, ","))
 }
@@ -81,7 +81,7 @@ func genPythonHelper(dep dep.INameSpace, f *descriptor.FileDescriptorProto) []*p
 		&plugin.CodeGeneratorResponse_File{
 			Name: proto.String(f.GetName() + "_helper.py"),
 			Content: proto.String(`
-from typing import Any,Mapping,List
+from typing import Any,Mapping,List,Tuple
 from google.protobuf import json_format
 ` +
 				strings.Join(genEnumDicts(dep, ""), "\n\n") +
