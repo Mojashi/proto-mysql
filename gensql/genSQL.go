@@ -11,6 +11,24 @@ import (
 )
 
 type MySQLDataType string
+type MySQLDataTypeWithArgs struct {
+	dataType MySQLDataType
+	args     []string
+}
+
+func (t MySQLDataTypeWithArgs) ToString() string {
+	if t.args != nil {
+		return fmt.Sprintf("%s(%s)", t.dataType, strings.Join(t.args, ","))
+	} else {
+		return string(t.dataType)
+	}
+}
+func (t *MySQLDataTypeWithArgs) setArgs(args []string) {
+	t.args = args
+}
+func (t MySQLDataTypeWithArgs) GetType() MySQLDataType {
+	return t.dataType
+}
 
 const (
 	DOUBLE  MySQLDataType = "DOUBLE"
@@ -54,36 +72,40 @@ func enumEnum(e *descriptor.EnumDescriptorProto) (names []string) {
 	return names
 }
 
-func GenMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataType, error) {
-	var mType MySQLDataType
+func GenMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataTypeWithArgs, error) {
+	var ret MySQLDataTypeWithArgs
 
 	if field.Type != nil {
+		var mType MySQLDataType
 		var ok bool
 		if mType, ok = MySQLDataTypeMap[field.GetType()]; !ok {
 			// Message type
-			mType = JSON
+			ret = MySQLDataTypeWithArgs{JSON, nil}
 		}
-		if mType == ENUM {
+		switch mType {
+		case ENUM:
 			if enum, ok := dep.GetEnum(strings.Split(field.GetTypeName(), ".")); ok {
-				mType += MySQLDataType("(\"" + strings.Join(enumEnum(enum.GetEnum()), "\",\"") + "\")")
+				ret = MySQLDataTypeWithArgs{mType, enumEnum(enum.GetEnum())}
 			} else {
 				glog.Errorf("failed to find ENUM %s", field.GetTypeName())
-				return mType, fmt.Errorf("failed to find ENUM")
+				return MySQLDataTypeWithArgs{mType, nil}, fmt.Errorf("failed to find ENUM")
 			}
+		default:
+			ret = MySQLDataTypeWithArgs{mType, nil}
 		}
 	} else if field.TypeName != nil {
 		// Message type
-		mType = JSON
+		ret = MySQLDataTypeWithArgs{JSON, nil}
 	} else {
-		return mType, fmt.Errorf("failed to find type")
+		return ret, fmt.Errorf("failed to find type")
 	}
 
 	if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 		// repeated type is represented as JSON
-		mType = JSON
+		ret = MySQLDataTypeWithArgs{JSON, nil}
 	}
 
-	return mType, nil
+	return ret, nil
 }
 
 func genColumnDefinition(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (string, error) {
@@ -97,7 +119,7 @@ func genColumnDefinition(dep dep.INameSpace, field *descriptor.FieldDescriptorPr
 		defaultValule = fmt.Sprintf("DEFAULT %s", field.GetDefaultValue())
 	}
 
-	return fmt.Sprintf("%s %s %s", dataType, nullable, defaultValule), err
+	return fmt.Sprintf("%s %s %s", dataType.ToString(), nullable, defaultValule), err
 }
 
 // return column definition. e.g. "id INTEGER NOT NULL"

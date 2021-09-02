@@ -14,7 +14,9 @@ type Path []string
 type INameSpace interface {
 	GetMessage(path Path) (Message, bool)
 	GetEnum(path Path) (Enum, bool)
+	GetEnums() map[string]Enum
 	GetNameSpace(name Path) *NameSpace
+	GetNameSpaces() map[string]INameSpace
 	AddEnum(enum Enum)
 	AddMessage(Message Message)
 	PrintTree(depth int) string
@@ -53,6 +55,10 @@ func (ns *NameSpace) GetMessage(path Path) (Message, bool) {
 	}
 }
 
+func (ns *NameSpace) GetEnums() map[string]Enum {
+	return ns.enums
+}
+
 func (ns *NameSpace) GetEnum(path Path) (Enum, bool) {
 	if len(path) == 0 {
 		return Enum{}, false
@@ -69,6 +75,10 @@ func (ns *NameSpace) GetEnum(path Path) (Enum, bool) {
 	} else {
 		return Enum{}, false
 	}
+}
+
+func (ns *NameSpace) GetNameSpaces() map[string]INameSpace {
+	return ns.childNameSpaces
 }
 
 //package "foo.bar" -> getNameSpace([]string{"foo", "bar"})

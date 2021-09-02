@@ -11,6 +11,30 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// namespace is seperated by "_"
+func getEnumDictName(namespace string, name string) string {
+	return fmt.Sprintf("ENUMDICT_%s_%s", namespace, name)
+}
+
+func genEnumDicts(dep dep.INameSpace, namespace string) []string {
+	enums := dep.GetEnums()
+	cur := make([]string, 0, len(enums))
+	for name, enum := range enums {
+		kvs := make([]string, 0, len(enum.GetEnum().Value))
+		for _, v := range enum.GetEnum().Value {
+			kvs = append(kvs, fmt.Sprintf("\t%d:\"%s\"", v.GetNumber(), v.GetName()))
+		}
+		cur = append(cur, fmt.Sprintf("%s = {\n%s\n}",
+			getEnumDictName(namespace, name),
+			strings.Join(kvs, ",\n"),
+		))
+	}
+	for name, ns := range dep.GetNameSpaces() {
+		cur = append(cur, genEnumDicts(ns, namespace+"_"+name)...)
+	}
+	return cur
+}
+
 func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 	tableName := mdesc.GetName()
 	elems := []string{}
@@ -20,9 +44,15 @@ func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 		columns = append(columns, fdesc.GetName())
 		name := "value." + fdesc.GetName()
 
-		if t, _ := gensql.GenMySQLDataType(dep, fdesc); t == gensql.JSON {
+		switch t, _ := gensql.GenMySQLDataType(dep, fdesc); t.GetType() {
+		case gensql.JSON:
 			elems = append(elems, fmt.Sprintf("json_format.MessageToJson(%s)", name))
-		} else {
+		case gensql.ENUM:
+			terms := strings.Split(fdesc.GetTypeName(), ".")
+			elems = append(elems, fmt.Sprintf("%s[%s]",
+				getEnumDictName(strings.Join(terms[:len(terms)-1], "_"), terms[len(terms)-1]),
+				name))
+		default:
 			elems = append(elems, name)
 		}
 	}
@@ -53,7 +83,9 @@ func genPythonHelper(dep dep.INameSpace, f *descriptor.FileDescriptorProto) []*p
 			Content: proto.String(`
 from typing import Any,Mapping,List
 from google.protobuf import json_format
-` + strings.Join(methods, "\n\n")),
+` +
+				strings.Join(genEnumDicts(dep, ""), "\n\n") +
+				strings.Join(methods, "\n\n")),
 		},
 	}
 }
