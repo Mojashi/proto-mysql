@@ -79,7 +79,7 @@ func genPythonHelper(dep dep.INameSpace, f *descriptor.FileDescriptorProto) []*p
 
 	return []*plugin.CodeGeneratorResponse_File{
 		{
-			Name: proto.String(f.GetName() + "_helper.py"),
+			Name: proto.String(strings.Replace(f.GetName(), ".proto", "", -1) + "_sqlhelper.py"),
 			Content: proto.String(`
 from typing import Any,Mapping,List,Tuple
 from google.protobuf import json_format
