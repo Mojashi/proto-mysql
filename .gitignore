@@ -1,2 +1,3 @@
 protoc-gen-mysql
 __pycache__/
+dump.log
