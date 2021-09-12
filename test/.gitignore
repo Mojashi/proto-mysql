@@ -1,4 +1,4 @@
-test.proto_helper.py
+test_sqlhelper.py
 test.proto.sql
 __pycache__/
 test_pb2.py

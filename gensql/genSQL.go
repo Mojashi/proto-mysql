@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mojashi/proto-mysql/dep"
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/pkg/errors"
 )
@@ -42,6 +43,8 @@ const (
 	TEXT    MySQLDataType = "TEXT"
 	BLOB    MySQLDataType = "BLOB"
 	JSON    MySQLDataType = "JSON"
+	CHAR    MySQLDataType = "CHAR"
+	VARCHAR MySQLDataType = "VARCHAR"
 )
 
 var MySQLDataTypeMap = map[descriptor.FieldDescriptorProto_Type]MySQLDataType{
@@ -72,8 +75,30 @@ func enumEnum(e *descriptor.EnumDescriptorProto) (names []string) {
 	return names
 }
 
+func CheckSpecifiedType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataTypeWithArgs, bool) {
+	opts := field.GetOptions()
+	if opts == nil {
+		return MySQLDataTypeWithArgs{}, false
+	}
+
+	ext, err := proto.GetExtension(opts, E_MySQLType)
+	if err != nil {
+		return MySQLDataTypeWithArgs{}, false
+	}
+
+	t := ext.(*MySQLType)
+	return MySQLDataTypeWithArgs{
+		dataType: MySQLDataType(t.GetTypeName()),
+		args:     t.GetArgs(),
+	}, true
+}
+
 func GenMySQLDataType(dep dep.INameSpace, field *descriptor.FieldDescriptorProto) (MySQLDataTypeWithArgs, error) {
 	var ret MySQLDataTypeWithArgs
+
+	if cand, ok := CheckSpecifiedType(dep, field); ok {
+		return cand, nil
+	}
 
 	if field.Type != nil {
 		var mType MySQLDataType

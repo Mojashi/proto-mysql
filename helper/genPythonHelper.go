@@ -44,11 +44,17 @@ func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 	for _, fdesc := range mdesc.Field {
 		columns = append(columns, fdesc.GetName())
 		name := "value." + fdesc.GetName()
+		ptype := fdesc.GetType()
 		elem := ""
 
 		switch t, _ := gensql.GenMySQLDataType(dep, fdesc); t.GetType() {
 		case gensql.JSON:
-			elem = fmt.Sprintf("json_format.MessageToJson(%s)", name)
+			if fdesc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED &&
+				ptype != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				elem = fmt.Sprintf("json.dumps(list(%s))", name)
+			} else {
+				elem = fmt.Sprintf("json_format.MessageToJson(%s)", name)
+			}
 		case gensql.ENUM:
 			terms := strings.Split(fdesc.GetTypeName(), ".")
 			elem = fmt.Sprintf("%s[%s]",
@@ -86,10 +92,11 @@ func genPythonHelper(dep dep.INameSpace, f *descriptor.FileDescriptorProto) []*p
 
 	return []*plugin.CodeGeneratorResponse_File{
 		{
-			Name: proto.String(f.GetName() + "_helper.py"),
+			Name: proto.String(strings.Replace(f.GetName(), ".proto", "", -1) + "_sqlhelper.py"),
 			Content: proto.String(`
 from typing import Any,Mapping,List,Tuple
 from google.protobuf import json_format
+import json
 ` +
 				strings.Join(genEnumDicts(dep, ""), "\n\n") +
 				strings.Join(methods, "\n\n")),

@@ -1,0 +1,13 @@
+syntax = "proto3";
+import "google/protobuf/descriptor.proto";
+
+option go_package="./gensql";
+
+message MySQLType {
+    string typeName = 1;
+    repeated string args = 2;
+}
+
+extend google.protobuf.FieldOptions {
+  MySQLType mySQLType = 50000;
+}
