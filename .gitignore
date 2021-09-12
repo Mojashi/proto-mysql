@@ -1,2 +1,3 @@
 protoc-gen-mysql
 __pycache__/
+mySQLOptions_pb2.py
