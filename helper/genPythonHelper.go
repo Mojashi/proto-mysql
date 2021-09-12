@@ -51,9 +51,9 @@ func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 		case gensql.JSON:
 			if fdesc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 				if ptype != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-					elems = append(elems, fmt.Sprintf("json.dumps(list(%s))", name))
+					elem = fmt.Sprintf("json.dumps(list(%s))", name)
 				} else {
-					elems = append(elems, fmt.Sprintf(`"["+",".join(map(lambda v: json_format.MessageToJson(v), list(%s)))+"]"`, name))
+					elem = fmt.Sprintf(`"["+",".join(map(lambda v: json_format.MessageToJson(v), list(%s)))+"]"`, name)
 				}
 			} else {
 				elem = fmt.Sprintf("json_format.MessageToJson(%s)", name)
