@@ -42,16 +42,19 @@ func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 	columns := []string{}
 
 	for _, fdesc := range mdesc.Field {
-		columns = append(columns, fdesc.GetName())
+		columns = append(columns, "\""+fdesc.GetName()+"\"")
 		name := "value." + fdesc.GetName()
 		ptype := fdesc.GetType()
 		elem := ""
 
 		switch t, _ := gensql.GenMySQLDataType(dep, fdesc); t.GetType() {
 		case gensql.JSON:
-			if fdesc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED &&
-				ptype != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-				elem = fmt.Sprintf("json.dumps(list(%s))", name)
+			if fdesc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+				if ptype != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+					elems = append(elems, fmt.Sprintf("json.dumps(list(%s))", name))
+				} else {
+					elems = append(elems, fmt.Sprintf(`"["+",".join(map(lambda v: json_format.MessageToJson(v), list(%s)))+"]"`, name))
+				}
 			} else {
 				elem = fmt.Sprintf("json_format.MessageToJson(%s)", name)
 			}
@@ -70,12 +73,12 @@ func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 		elems = append(elems, elem)
 	}
 
-	columns = append(columns, "PROTO_BINARY")
+	columns = append(columns, "\"PROTO_BINARY\"")
 	elems = append(elems, "value.SerializeToString()")
 
 	return fmt.Sprintf(`
 def get%sColumnNames() -> List[str]:
-	return "%s"
+	return [%s,]
 	
 # convert proto message class variable to INSERT-ready dictionary
 def conv%sProtoClassToData(value) -> Tuple:
