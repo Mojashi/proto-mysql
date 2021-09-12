@@ -12,6 +12,7 @@ import (
 )
 
 // namespace is seperated by "_"
+// might cause name collision
 func getEnumDictName(namespace string, name string) string {
 	return fmt.Sprintf("ENUMDICT_%s_%s", namespace, name)
 }
@@ -44,23 +45,29 @@ func genMethods(dep dep.INameSpace, mdesc *descriptor.DescriptorProto) string {
 		columns = append(columns, fdesc.GetName())
 		name := "value." + fdesc.GetName()
 		ptype := fdesc.GetType()
+		elem := ""
 
 		switch t, _ := gensql.GenMySQLDataType(dep, fdesc); t.GetType() {
 		case gensql.JSON:
 			if fdesc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED &&
 				ptype != descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-				elems = append(elems, fmt.Sprintf("json.dumps(list(%s))", name))
+				elem = fmt.Sprintf("json.dumps(list(%s))", name)
 			} else {
-				elems = append(elems, fmt.Sprintf("json_format.MessageToJson(%s)", name))
+				elem = fmt.Sprintf("json_format.MessageToJson(%s)", name)
 			}
 		case gensql.ENUM:
 			terms := strings.Split(fdesc.GetTypeName(), ".")
-			elems = append(elems, fmt.Sprintf("%s[%s]",
+			elem = fmt.Sprintf("%s[%s]",
 				getEnumDictName(strings.Join(terms[:len(terms)-1], "_"), terms[len(terms)-1]),
-				name))
+				name)
 		default:
-			elems = append(elems, name)
+			elem = name
 		}
+
+		if fdesc.GetProto3Optional() {
+			elem = fmt.Sprintf(`%s if value.HasField("%s") else None`, elem, fdesc.GetName())
+		}
+		elems = append(elems, elem)
 	}
 
 	columns = append(columns, "PROTO_BINARY")
